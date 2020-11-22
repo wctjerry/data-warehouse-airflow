@@ -95,7 +95,13 @@ load_time_dimension_table = LoadDimensionOperator(
     table="time"
 )
 
-run_quality_checks = DummyOperator(task_id='Run_data_quality_checks', dag=dag)
+run_quality_checks = DataQualityOperator(
+    task_id='Run_data_quality_checks',
+    dag=dag,
+    sql_test="SELECT SUM(CASE WHEN userid IS NULL THEN 1 ELSE 0 END) FROM users",
+    expected_result=0,
+    redshift_conn_id="redshift",
+)
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
