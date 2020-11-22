@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators import (StageToRedshiftOperator, LoadFactOperator)
+from airflow.operators import (StageToRedshiftOperator, LoadFactOperator, LoadDimensionOperator)
 
 from helpers import SqlQueries
 
@@ -59,13 +59,41 @@ load_songplays_table = LoadFactOperator(
     table="songplays",
 )
 
-load_user_dimension_table = DummyOperator(task_id='Load_user_dim_table', dag=dag)
+load_user_dimension_table = LoadDimensionOperator(
+    task_id='Load_user_dim_table',
+    dag=dag,
+    sql_insert_source=sql_queries.user_table_insert,
+    sql_insert_columns="userid, first_name, last_name, gender, level",
+    redshift_conn_id="redshift",
+    table="users"
+)
 
-load_song_dimension_table = DummyOperator(task_id='Load_song_dim_table', dag=dag)
+load_song_dimension_table = LoadDimensionOperator(
+    task_id='Load_song_dim_table',
+    dag=dag,
+    sql_insert_source=sql_queries.song_table_insert,
+    sql_insert_columns="songid, title, artistid, year, duration",
+    redshift_conn_id="redshift",
+    table="songs"
+)
 
-load_artist_dimension_table = DummyOperator(task_id='Load_artist_dim_table', dag=dag)
+load_artist_dimension_table = LoadDimensionOperator(
+    task_id='Load_artist_dim_table',
+    dag=dag,
+    sql_insert_source=sql_queries.artist_table_insert,
+    sql_insert_columns="artistid, name, location, lattitude, longitude",
+    redshift_conn_id="redshift",
+    table="artists"
+)
 
-load_time_dimension_table = DummyOperator(task_id='Load_time_dim_table', dag=dag)
+load_time_dimension_table = LoadDimensionOperator(
+    task_id='Load_time_dim_table',
+    dag=dag,
+    sql_insert_source=sql_queries.time_table_insert,
+    sql_insert_columns="start_time, hour, day, week, month, year, weekday",
+    redshift_conn_id="redshift",
+    table="time"
+)
 
 run_quality_checks = DummyOperator(task_id='Run_data_quality_checks', dag=dag)
 
