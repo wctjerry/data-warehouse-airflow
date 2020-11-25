@@ -40,6 +40,9 @@ class StageToRedshiftOperator(BaseOperator):
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
         aws_hook = AwsHook(self.aws_credentials_id)
         credentials = aws_hook.get_credentials()
+
+        if self.table == "staging_songs":
+            redshift.run("DELETE FROM staging_songs")
         
         s3_path = "s3://{}/{}".format(self.s3_bucket, self.s3_key)
         
